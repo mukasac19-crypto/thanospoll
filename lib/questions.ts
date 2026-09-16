@@ -109,7 +109,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "fifty",
-    text: "Okay… what if YOU had a 50% chance of disappearing? Would you still press it?",
+    text: "Okay… what if YOU had a 100% chance of disappearing? Would you still press it?",
     context: "You don't get to know which half you're in. Nobody did.",
     scored: true,
     aftermath:
