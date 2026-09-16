@@ -1,0 +1,336 @@
+@import "tailwindcss";
+
+/*
+  Committed dark. This is a game about a purple man erasing half of everything;
+  a light theme would be a lie about the subject matter.
+*/
+
+@theme {
+  --color-void: #050309;
+  --color-abyss: #0b0713;
+  --color-slab: #120c1e;
+  --color-edge: #241a38;
+  --color-ash: #8b7fa3;
+  --color-bone: #e8e2f2;
+
+  --color-power: #8b5cf6;
+  --color-power-dim: #4c1d95;
+  --color-soul: #f97362;
+  --color-mind: #fbbf24;
+  --color-time: #4ade80;
+  --color-space: #60a5fa;
+  --color-reality: #f43f5e;
+
+  /* These must not be named --font-display / --font-sans on the next/font side:
+     a theme token defined in terms of itself is a cycle and silently drops. */
+  --font-display: var(--font-instrument), ui-serif, Georgia, serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@property --sweep {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-void);
+  color: var(--color-bone);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* The cosmic ground. Two drifting radial fields plus a static grain, all in
+   CSS so it costs nothing and never blocks paint. */
+.starfield {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 20% 10%,
+      color-mix(in oklab, var(--color-power) 22%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 70% 70% at 85% 85%,
+      color-mix(in oklab, var(--color-soul) 12%, transparent),
+      transparent 62%
+    ),
+    var(--color-void);
+  animation: breathe 24s ease-in-out infinite alternate;
+}
+
+.starfield::after {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, #fff, transparent),
+    radial-gradient(1px 1px at 70% 60%, #fff, transparent),
+    radial-gradient(1px 1px at 40% 80%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 90% 20%, #fff, transparent),
+    radial-gradient(1px 1px at 10% 70%, #fff, transparent),
+    radial-gradient(1px 1px at 55% 15%, #fff, transparent);
+  background-size: 340px 340px;
+  opacity: 0.32;
+  animation: drift 200s linear infinite;
+}
+
+@keyframes breathe {
+  to {
+    filter: hue-rotate(-18deg) saturate(1.15);
+  }
+}
+
+@keyframes drift {
+  to {
+    transform: translate3d(-340px, -340px, 0);
+  }
+}
+
+/* Warm vignette so long question text never sits on a flat field. */
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 90% 70% at 50% 45%,
+    transparent 40%,
+    color-mix(in oklab, var(--color-void) 82%, transparent) 100%
+  );
+}
+
+.card {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--color-slab) 92%, transparent),
+    color-mix(in oklab, var(--color-abyss) 92%, transparent)
+  );
+  border: 1px solid var(--color-edge);
+  backdrop-filter: blur(12px);
+}
+
+/* Rotating conic edge for the live element on screen. --sweep is a registered
+   custom property, so the angle genuinely interpolates. */
+.aura {
+  position: relative;
+  isolation: isolate;
+}
+
+.aura::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  /* --stone is set per card to the question's stone, so the edge sweep is
+     already the colour the card is about to come apart in. */
+  background: conic-gradient(
+    from var(--sweep),
+    transparent 0deg,
+    color-mix(in oklab, var(--stone, var(--color-power)) 90%, transparent) 60deg,
+    transparent 140deg,
+    color-mix(in oklab, var(--stone, var(--color-mind)) 55%, transparent) 220deg,
+    transparent 300deg
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: sweep 6s linear infinite;
+  z-index: -1;
+}
+
+@keyframes sweep {
+  to {
+    --sweep: 360deg;
+  }
+}
+
+.choice {
+  transition:
+    transform 0.35s var(--ease-snap),
+    border-color 0.25s,
+    background-color 0.25s;
+}
+
+.choice:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.choice:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.6s var(--ease-snap) both;
+}
+
+@keyframes ignite {
+  0% {
+    box-shadow: 0 0 0 0 currentColor;
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 14px 3px currentColor;
+    transform: scale(1.45);
+  }
+  100% {
+    box-shadow: 0 0 6px 0 currentColor;
+    transform: scale(1);
+  }
+}
+
+.ignite {
+  animation: ignite 0.9s var(--ease-snap);
+}
+
+/* Crowd bars fill from zero on mount so the comparison reads as an event. */
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.bar-fill {
+  transform-origin: left;
+  animation: fill 1.1s var(--ease-snap) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Card exit, timed to run under the particle emission.
+   Deliberately directionless: the drift up and to the right read as dust, which
+   fought Space pulling the card inward and Power throwing it outward. The
+   particles now carry the character and the card just leaves. */
+@keyframes stone-out {
+  to {
+    opacity: 0;
+    filter: blur(5px);
+    transform: scale(1.01);
+  }
+}
+
+.dusting {
+  animation: stone-out 620ms var(--ease-snap) forwards;
+  pointer-events: none;
+  /* Flares in the question's own stone, so the handover from DOM to canvas is
+     not a colour cut. */
+  box-shadow: 0 0 60px -10px var(--stone, var(--color-power));
+}
+
+/* ---------------------------------------------------------- home hero -- */
+
+/* The stone ring turns slowly. transform-origin has to be given in user units
+   because SVG elements have no CSS box to be a percentage of. */
+@keyframes orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.orbit {
+  animation: orbit 60s linear infinite;
+}
+
+/* Each stone arrives on its own beat, so the Gauntlet assembles rather than
+   simply appearing. */
+@keyframes stone-in {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.stone-in {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: stone-in 0.9s var(--ease-snap) both;
+}
+
+/* The snap, on a loop: rings leaving the centre. */
+@keyframes snap-ring {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  15% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+.snap-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: snap-ring 5s ease-out infinite;
+}
+
+@keyframes core-glow {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.08);
+  }
+}
+
+.core-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: core-glow 4.5s ease-in-out infinite;
+}
+
+/* Big live numbers count in rather than snapping to position. */
+@keyframes stat-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.stat-in {
+  animation: stat-in 0.8s var(--ease-snap) both;
+}
